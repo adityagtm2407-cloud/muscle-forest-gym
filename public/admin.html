@@ -1,0 +1,298 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Muscle Forest Gym | Admin</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 30px;
+            font-family: Arial, sans-serif;
+            background: #f4f4f4;
+            color: #222;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: auto;
+        }
+
+        h1 {
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 25px;
+        }
+
+        .dashboard {
+            background: white;
+            padding: 22px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px #00000010;
+        }
+
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+
+        button {
+            padding: 11px 18px;
+            background: #198754;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #146c43;
+        }
+
+        #status {
+            margin-bottom: 15px;
+            color: #555;
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 650px;
+        }
+
+        th, td {
+            text-align: left;
+            padding: 13px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background: #eee;
+        }
+
+        @media (max-width: 600px) {
+            body {
+                padding: 15px;
+            }
+
+            .dashboard {
+                padding: 12px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+
+        <div id="loginBox" class="dashboard" style="max-width: 420px; margin: 30px auto;">
+            <h2>Admin Login</h2>
+
+            <form id="loginForm">
+                <label for="username">Username</label>
+                <input id="username" name="username" type="text" required
+                    autocomplete="username"
+                    style="display:block; width:100%; padding:12px; margin:8px 0 16px;">
+
+                <label for="password">Password</label>
+                <input id="password" name="password" type="password" required
+                    autocomplete="current-password"
+                    style="display:block; width:100%; padding:12px; margin:8px 0 16px;">
+
+                <button type="submit">Login</button>
+                <p id="loginStatus" role="status"></p>
+            </form>
+        </div>
+        <h1>Muscle Forest Gym</h1>
+        <p class="subtitle">Admin Dashboard</p>
+
+        <div id="dashboard" class="dashboard" hidden>
+            <div class="top-bar">
+                <h2>Customer Enquiries</h2>
+                <button id="logoutBtn" type="button">Logout</button>
+                <button id="refreshBtn">Refresh Enquiries</button>
+            </div>
+
+            <p id="status">Click the button to load enquiries.</p>
+
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Phone</th>
+                            <th>Plan</th>
+                            <th>Message</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+
+                    <tbody id="enquiriesTable">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    
+<script>
+    const loginBox = document.querySelector("#loginBox");
+    const loginForm = document.querySelector("#loginForm");
+    const loginStatus = document.querySelector("#loginStatus");
+    const dashboard = document.querySelector("#dashboard");
+
+    const refreshBtn = document.querySelector("#refreshBtn");
+    const logoutBtn = document.querySelector("#logoutBtn");
+    const statusText = document.querySelector("#status");
+    const enquiriesTable = document.querySelector("#enquiriesTable");
+
+    // Check whether an admin session already exists
+    async function checkLogin() {
+        try {
+            const response = await fetch("/api/admin/session");
+            const result = await response.json();
+
+            showDashboard(response.ok && result.isAdmin);
+        } catch (error) {
+            console.error("Session check failed:", error);
+            showDashboard(false);
+        }
+    }
+
+    function showDashboard(isLoggedIn) {
+        loginBox.hidden = isLoggedIn;
+        dashboard.hidden = !isLoggedIn;
+
+        if (isLoggedIn) {
+            loadEnquiries();
+        }
+    }
+
+    // Admin login
+    loginForm.addEventListener("submit", async function(event) {
+        event.preventDefault();
+
+        loginStatus.textContent = "Logging in...";
+
+        const username = document.querySelector("#username").value.trim();
+        const password = document.querySelector("#password").value;
+
+        try {
+            const response = await fetch("/api/admin/login", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ username, password })
+            });
+
+            const result = await response.json();
+
+            if (!response.ok || !result.success) {
+                throw new Error(result.message || "Login failed.");
+            }
+
+            loginForm.reset();
+            loginStatus.textContent = "";
+            showDashboard(true);
+
+        } catch (error) {
+            loginStatus.textContent = error.message;
+        }
+    });
+
+    // Logout
+    logoutBtn.addEventListener("click", async function() {
+        try {
+            const response = await fetch("/api/admin/logout", {
+                method: "POST"
+            });
+
+            if (!response.ok) {
+                throw new Error("Logout failed.");
+            }
+
+            enquiriesTable.replaceChildren();
+            showDashboard(false);
+            loginStatus.textContent = "You have logged out.";
+        } catch (error) {
+            console.error(error);
+            statusText.textContent = "Could not log out. Please try again.";
+        }
+    });
+
+    refreshBtn.addEventListener("click", loadEnquiries);
+
+    // Load customer enquiries
+    async function loadEnquiries() {
+        statusText.textContent = "Loading enquiries...";
+        refreshBtn.disabled = true;
+
+        try {
+            const response = await fetch("/api/enquiries");
+            const result = await response.json();
+
+            if (response.status === 401) {
+                showDashboard(false);
+                loginStatus.textContent = "Please log in again.";
+                return;
+            }
+
+            if (!response.ok || !result.success) {
+                throw new Error(result.message || "Could not load enquiries.");
+            }
+
+            enquiriesTable.replaceChildren();
+
+            result.enquiries.forEach(enquiry => {
+                const row = document.createElement("tr");
+
+                const values = [
+                    enquiry.name,
+                    enquiry.phone,
+                    enquiry.plan,
+                    enquiry.message || "—",
+                    new Date(enquiry.createdAt).toLocaleString()
+                ];
+
+                values.forEach(value => {
+                    const cell = document.createElement("td");
+                    cell.textContent = value;
+                    row.appendChild(cell);
+                });
+
+                enquiriesTable.appendChild(row);
+            });
+
+            statusText.textContent = `Total enquiries: ${result.count}`;
+
+        } catch (error) {
+            console.error(error);
+            statusText.textContent =
+                "Could not load enquiries. Check the server and try again.";
+        } finally {
+            refreshBtn.disabled = false;
+        }
+    }
+
+    checkLogin();
+</script>
+</body>
+</html>
