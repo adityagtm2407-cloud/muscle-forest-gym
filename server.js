@@ -5,6 +5,7 @@ const express = require('express');
 const path = require('path');
 const { MongoClient } = require('mongodb');
 const session = require('express-session');
+const { rateLimit } = require('express-rate-limit');
 
 const app = express();
 const PORT = 3000;
@@ -45,6 +46,17 @@ app.get('/api/test', (req, res) => {
     res.json({ message: 'Correct server is working!' });
 });
 
+const adminLoginLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    limit: 5,
+    standardHeaders: 'draft-8',
+    legacyHeaders: false,
+    message: {
+        success: false,
+        message: 'Too many login attempts. Please try again after 15 minutes.'
+    }
+});
+
 async function startServer() {
     try {
         await client.connect();
@@ -57,7 +69,7 @@ async function startServer() {
 
         
         // Admin login route
-        app.post('/api/admin/login', async (req, res) => {
+        app.post('/api/admin/login', adminLoginLimiter, async (req, res) => {
             try {
                 const { username, password } = req.body;
 
