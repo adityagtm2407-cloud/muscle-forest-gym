@@ -227,6 +227,25 @@ body{
     transition: 0.3s;
 }
 
+button.about-btn {
+    appearance: none;
+    -webkit-appearance: none;
+    display: inline-block;
+    padding: 12px 25px;
+    margin: 0;
+    background: #2D6A4F;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-family: inherit;
+    font-size: 16px;
+    font-weight: normal;
+    line-height: normal;
+    text-decoration: none;
+    transition: 0.3s;
+    cursor: pointer;
+}
+
 .about-btn:hover{
     background: #1B4332;
 }
@@ -775,4 +794,28 @@ body{
     font-weight: bold;
     text-align: center;
     margin-top: 10px;
+}
+
+
+.program-btn {
+    background: none;
+    border: none;
+    padding: 0;
+    color: #2d6a4f;
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.program-btn:hover {
+    color: #40916c;
+}
+
+.program-details {
+    margin-top: 12px;
+}
+
+.program-details ul {
+    padding-left: 18px;
+    margin-top: 4px;
 }

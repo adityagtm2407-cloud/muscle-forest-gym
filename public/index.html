@@ -136,9 +136,19 @@
 
             </div>
 
-            <a href="#" class="about-btn">
-                Learn More
-            </a>
+            <button type="button" class="about-btn"
+        onclick="toggleProgramDetails(this)">
+    Learn More →
+</button>
+
+<div class="program-details" hidden>
+    <p>
+        At Muscle Forest Gym, we focus on helping every member
+        build strength, improve endurance, and maintain a healthy
+        lifestyle. Our training environment supports beginners
+        as well as experienced fitness enthusiasts.
+    </p>
+</div>
 
         </div>
 
@@ -180,9 +190,19 @@
                     and effective workout routines.
                 </p>
 
-                <a href="#">
-                    Learn More →
-                </a>
+                <a href="#" class="learn-more-btn" onclick="toggleProgramDetails(this); return false;">
+    Learn More →
+</a>
+
+<div class="program-details" hidden>
+    <h4>Strength Training Benefits</h4>
+    <ul>
+        <li>Build muscle and increase strength</li>
+        <li>Improve overall fitness and stamina</li>
+        <li>Learn proper weightlifting techniques</li>
+        <li>Follow structured workout routines</li>
+    </ul>
+</div>
 
             </div>
 
@@ -200,9 +220,20 @@
                     with our cardio equipment.
                 </p>
 
-                <a href="#">
-                    Learn More →
-                </a>
+                
+<button class="program-btn" type="button" onclick="toggleProgramDetails(this)">
+    Learn More →
+</button>
+
+<div class="program-details" id="cardio-details" hidden>
+    <strong>Cardio Training Benefits</strong>
+    <ul>
+        <li>Improve stamina and endurance</li>
+        <li>Support heart health and fitness</li>
+        <li>Burn calories and improve conditioning</li>
+        <li>Build a consistent cardio routine</li>
+    </ul>
+</div>
 
             </div>
 
@@ -220,9 +251,20 @@
                     trainers to achieve your fitness goals.
                 </p>
 
-                <a href="#">
-                    Learn More →
-                </a>
+                
+<button class="program-btn" type="button" onclick="toggleProgramDetails(this)">
+    Learn More →
+</button>
+
+<div class="program-details" id="personal-details" hidden>
+    <strong>Personal Training Benefits</strong>
+    <ul>
+        <li>Individual attention from a trainer</li>
+        <li>Workout plans based on your goals</li>
+        <li>Guidance on exercise technique</li>
+        <li>Track progress and improve consistency</li>
+    </ul>
+</div>
 
             </div>
 
@@ -271,7 +313,7 @@
                     Perfect for getting started with your fitness journey.
                 </p>
 
-                <a href="#" class="membership-btn" data-plan="1-month">
+                <a href="#contact" class="membership-btn" data-plan="1-month">
                     Join Now
                 </a>
 
@@ -298,7 +340,7 @@
                     Save more and stay committed to your fitness goals.
                 </p>
 
-                <a href="#" class="membership-btn" data-plan="3-months">
+                <a href="#contact" class="membership-btn" data-plan="3-months">
                     Join Now
                 </a>
 
@@ -321,7 +363,7 @@
                     Get full access to the gym for an entire year and save more.
                 </p>
 
-                <a href="#" class="membership-btn" data-plan="1-year">
+                <a href="#contact" class="membership-btn" data-plan="1-year">
                     Join Now
                 </a>
 
@@ -393,7 +435,7 @@
                 required
             >
 
-            <select required>
+            <select id="membership-plan" name="plan" required>
 
                 <option value="">
                     Select Membership Plan

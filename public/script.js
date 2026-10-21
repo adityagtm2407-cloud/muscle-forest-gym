@@ -122,3 +122,27 @@ contactForm.addEventListener("submit", async function(event) {
         submitButton.textContent = "Send Message";
     }
 });
+
+function toggleProgramDetails(button) {
+    const details = button.nextElementSibling;
+
+    if (details.hidden) {
+        details.hidden = false;
+        button.textContent = "Show Less ↑";
+    } else {
+        details.hidden = true;
+        button.textContent = "Learn More →";
+    }
+}
+
+document.querySelectorAll(".membership-btn").forEach(button => {
+    button.addEventListener("click", function () {
+        const selectedPlan = this.dataset.plan;
+        const planDropdown = document.getElementById("membership-plan");
+
+        if (planDropdown) {
+            planDropdown.value = selectedPlan;
+        }
+    });
+});
+
