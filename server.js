@@ -6,28 +6,39 @@ const path = require('path');
 const { MongoClient } = require('mongodb');
 const session = require('express-session');
 const { rateLimit } = require('express-rate-limit');
+const { MongoStore } = require('connect-mongo');
 
 const app = express();
-const PORT = 3000;
+if (process.env.NODE_ENV === 'production') {
+    app.set('trust proxy', 1);
+}
+const PORT = process.env.PORT || 3000;
 
-const MONGO_URL = 'mongodb://127.0.0.1:27017';
+const MONGO_URL = process.env.MONGO_URL || 'mongodb://127.0.0.1:27017';
 const DB_NAME = 'muscleForestGym';
 
 const client = new MongoClient(MONGO_URL);
 
-app.use(express.json());
+app.use(express.json({ limit: '10kb' }));
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(session({
     secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
+
+    store: MongoStore.create({
+        mongoUrl: process.env.MONGO_URL,
+        dbName: 'muscleForestGym',
+        collectionName: 'sessions',
+        ttl: 60 * 60
+    }),
+
     cookie: {
         httpOnly: true,
-        secure: false,
+        secure: process.env.NODE_ENV === 'production',
         sameSite: 'lax',
         maxAge: 1000 * 60 * 60
     }
-
 }));
 
 
@@ -54,6 +65,17 @@ const adminLoginLimiter = rateLimit({
     message: {
         success: false,
         message: 'Too many login attempts. Please try again after 15 minutes.'
+    }
+});
+
+const enquiryLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    limit: 10,
+    standardHeaders: 'draft-8',
+    legacyHeaders: false,
+    message: {
+        success: false,
+        message: 'Too many enquiries. Please try again after 15 minutes.'
     }
 });
 
@@ -177,17 +199,20 @@ req.session.regenerate((error) => {
             }
         });
 
-        app.post('/api/enquiries', async (req, res) => {
+        app.post('/api/enquiries', enquiryLimiter, async (req, res) => {
             try {
                 const { name, phone, plan, message } = req.body;
 
+                
                 if (
                     typeof name !== 'string' ||
                     !name.trim() ||
+                    name.trim().length > 100 ||
                     typeof phone !== 'string' ||
                     !/^\d{10}$/.test(phone.trim()) ||
                     !['1-month', '3-months', '1-year'].includes(plan) ||
-                    (message !== undefined && typeof message !== 'string')
+                    (message !== undefined &&
+                        (typeof message !== 'string' || message.length > 1000))
                 ) {
                     return res.status(400).json({
                         success: false,
